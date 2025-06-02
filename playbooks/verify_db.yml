@@ -1,0 +1,56 @@
+---
+- name: Kontrolli MariaDB seadistust
+  hosts: dbserver
+  become: true
+
+  collections:
+    - community.mysql
+
+  tasks:
+    - name: Kontrolli, kas andmebaas 'kasutajatugi' eksisteerib
+      community.mysql.mysql_db:
+        name: kasutajatugi
+        state: present
+        login_user: root
+        login_unix_socket: /run/mysqld/mysqld.sock
+      register: db_check
+
+    - name: Kuvame andmebaasi oleku
+      debug:
+        msg: "Andmebaas 'kasutajatugi' on olemas: {{ db_check.changed == false }}"
+
+    - name: Kontrolli, kas tabel 'probleemid' eksisteerib
+      community.mysql.mysql_query:
+        login_user: root
+        login_unix_socket: /run/mysqld/mysqld.sock
+        login_db: kasutajatugi
+        query: "SHOW TABLES LIKE 'probleemid';"
+      register: table_check
+
+    - name: Kuvame tabeli olemasolu
+      debug:
+        msg: >-
+          {% if table_check.query_result is defined and table_check.query_result | length > 0 %}
+          ✅ Tabel 'probleemid' eksisteerib.
+          {% else %}
+          ⚠️ Tabel 'probleemid' puudub või andmebaasiga oli probleem.
+          {% endif %}
+
+    - name: Testi, kas kasutaja 'kasutaja' saab ühenduda
+      community.mysql.mysql_query:
+        login_user: kasutaja
+        login_password: salasona
+        login_db: kasutajatugi
+        query: "SELECT 1;"
+      register: user_check
+      ignore_errors: yes
+
+    - name: Kuvame kasutaja ühendustesti tulemuse
+      debug:
+        msg: >-
+          {% if user_check.failed is defined and user_check.failed %}
+          ❌ Kasutaja 'kasutaja' EI saa ühendust (kontrolli õiguseid või paroole)
+          {% else %}
+          ✅ Kasutaja 'kasutaja' saab edukalt ühendust
+          {% endif %}
+

@@ -1,0 +1,43 @@
+---
+- name: Kontrolli Kasutajatoe veebilehe paigaldust
+  hosts: webserver
+  become: yes
+
+  tasks:
+    - name: Kontrolli, kas Apache teenus töötab
+      ansible.builtin.systemd:
+        name: httpd
+      register: apache_status
+
+    - name: Kuvame Apache teenuse oleku
+      debug:
+        msg: "Apache teenus on {{ apache_status.status.ActiveState }}"
+
+    - name: Kontrolli, kas banner.jpg on olemas
+      stat:
+        path: /var/www/html/assets/banner.jpg
+      register: banner_status
+
+    - name: Kuvame info bänneri kohta
+      debug:
+        msg: "Banner.jpg olemas: {{ banner_status.stat.exists }} (suurus: {{ banner_status.stat.size | default('puudub') }} baiti)"
+
+    - name: Kontrolli, kas index.php on olemas
+      stat:
+        path: /var/www/html/index.php
+      register: index_status
+
+    - name: Kuvame info index.php kohta
+      debug:
+        msg: "Index.php olemas: {{ index_status.stat.exists }}"
+
+    - name: Kontrolli, kas PHP töötab (phpinfo test)
+      uri:
+        url: https://10.0.24.51/info.php
+        validate_certs: no
+      register: phpinfo_test
+      ignore_errors: yes
+
+    - name: Kuvame phpinfo testi tulemuse
+      debug:
+        var: phpinfo_test.status

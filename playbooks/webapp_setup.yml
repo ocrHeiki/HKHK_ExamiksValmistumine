@@ -1,0 +1,7 @@
+---
+- name: Kasutajatoe veebilehe paigaldus
+  hosts: webserver
+  become: yes
+
+  roles:
+    - webapp

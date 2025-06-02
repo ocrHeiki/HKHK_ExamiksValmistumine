@@ -1,0 +1,55 @@
+---
+- name: Paigalda Apache
+  dnf:
+    name: httpd
+    state: present
+
+- name: Paigalda PHP ja vajalikud moodulid
+  dnf:
+    name:
+      - php
+      - php-cli
+      - php-common
+      - php-mysqlnd
+      - php-fpm
+      - php-gd
+      - php-xml
+    state: present
+
+- name: Käivita ja luba Apache
+  systemd:
+    name: httpd
+    enabled: yes
+    state: started
+
+- name: Käivita ja luba PHP-FPM
+  systemd:
+    name: php-fpm
+    enabled: yes
+    state: started
+
+- name: Loo assets kataloog
+  file:
+    path: /var/www/html/assets
+    state: directory
+    mode: '0755'
+
+- name: Lae üles veebifailid
+  copy:
+    src: "{{ item }}"
+    dest: /var/www/html/
+    mode: '0644'
+  loop:
+    - index.php
+    - admin.php
+    - login.php
+    - logout.php
+    - config.php
+    - style.css
+
+- name: Lae üles bänneripilt
+  copy:
+    src: assets/banner.jpg
+    dest: /var/www/html/assets/banner.jpg
+    mode: '0644'
+

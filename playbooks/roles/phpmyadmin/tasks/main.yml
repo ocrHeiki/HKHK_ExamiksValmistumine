@@ -1,0 +1,28 @@
+---
+- name: Paigalda vajalikud paketid
+  apt:
+    name:
+      - phpmyadmin
+      - php-mbstring
+      - php-zip
+      - php-gd
+      - php-json
+      - php-curl
+    state: present
+    update_cache: yes
+
+- name: Luba mbstring moodul
+  command: phpenmod mbstring
+
+- name: Loo symlink phpMyAdminile
+  file:
+    src: /usr/share/phpmyadmin
+    dest: /var/www/html/phpmyadmin
+    state: link
+
+- name: Veendu, et apache oleks uuesti käivitatud
+  service:
+    name: apache2
+    state: restarted
+  when: ansible_os_family == "Debian"
+

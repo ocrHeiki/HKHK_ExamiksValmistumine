@@ -1,0 +1,26 @@
+---
+- name: Veendu, et varunduskataloog olemas
+  file:
+    path: /var/backups
+    state: directory
+    mode: '0755'
+
+- name: Paigalda varundusskript
+  copy:
+    src: backup_kasutajatugi.sh
+    dest: /usr/local/bin/backup_kasutajatugi.sh
+    mode: '0755'
+
+- name: Lisa crontab töö iga 2 tunni järel logifailiga
+  cron:
+    name: "Kasutajatoe varundus"
+    job: "/usr/local/bin/backup_kasutajatugi.sh >> /var/log/backup_kasutajatugi.log 2>&1"
+    minute: "0"
+    hour: "*/2"
+
+- name: Veendu, et logifail eksisteerib
+  file:
+    path: /var/log/backup_kasutajatugi.log
+    state: touch
+    mode: '0644'
+

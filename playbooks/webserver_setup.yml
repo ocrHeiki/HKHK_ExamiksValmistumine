@@ -1,0 +1,37 @@
+---
+- name: Veebiserveri paigaldus AlmaLinux masinasse
+  hosts: webserver
+  become: yes
+
+  tasks:
+    - name: Veendu, et DNF on olemas
+      command: dnf --version
+
+    - name: Paigalda Apache veebiserver
+      dnf:
+        name: httpd
+        state: present
+
+    - name: Paigalda PHP ja vajalikud moodulid
+      dnf:
+        name:
+          - php
+          - php-mysqlnd
+          - php-cli
+          - php-gd
+          - php-xml
+        state: present
+
+    - name: Luba ja käivita Apache teenus
+      systemd:
+        name: httpd
+        enabled: yes
+        state: started
+
+    - name: Luba firewallis HTTP (vajadusel, kui firewalld kasutusel)
+      firewalld:
+        service: http
+        permanent: true
+        state: enabled
+        immediate: true
+      ignore_errors: yes

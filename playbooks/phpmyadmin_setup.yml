@@ -1,0 +1,7 @@
+---
+- name: phpMyAdmin paigaldus Debian serverisse
+  hosts: dbserver
+  become: yes
+
+  roles:
+    - phpmyadmin

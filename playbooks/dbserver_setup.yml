@@ -1,0 +1,55 @@
+---
+- name: Andmebaasiserveri seadistamine Debianis
+  hosts: dbserver
+  become: yes
+
+  collections:
+    - community.mysql
+
+  tasks:
+    - name: Paigalda MariaDB server
+      apt:
+        name: mariadb-server
+        state: present
+        update_cache: yes
+
+    - name: Paigalda vajalik Python moodul
+      apt:
+        name: python3-pymysql
+        state: present
+
+    - name: Veendu, et MariaDB server teenus töötab
+      service:
+        name: mariadb
+        state: started
+        enabled: yes
+
+    - name: Muuda bind-address väärtust
+      lineinfile:
+        path: /etc/mysql/mariadb.conf.d/50-server.cnf
+        regexp: '^bind-address'
+        line: 'bind-address = 0.0.0.0'
+        backup: yes
+
+    - name: Luba kasutajal 'kasutaja' ühenduda kaugelt
+      community.mysql.mysql_user:
+        name: kasutaja
+        password: salasona
+        host: '%'
+        priv: '*.*:ALL'
+        state: present
+        login_unix_socket: /run/mysqld/mysqld.sock
+
+    - name: Taaskäivita MariaDB
+      service:
+        name: mariadb
+        state: restarted
+
+    - name: Loo andmebaasitabel probleemide salvestamiseks
+      community.mysql.mysql_db:
+        name: kasutajatugi
+        state: import
+        target: "{{ playbook_dir }}/roles/dbserver/files/create_table.sql"
+        login_user: kasutaja
+        login_password: salasona
+

@@ -1,0 +1,64 @@
+---
+- name: Kontrolli Kasutajatoe varunduse seadistust
+  hosts: webserver
+  become: yes
+
+  tasks:
+    - name: Kontrolli, kas varundusskript on olemas
+      stat:
+        path: /usr/local/bin/backup_kasutajatugi.sh
+      register: script_status
+
+    - name: Kuvame skripti oleku
+      debug:
+        msg: "Varundusskript on olemas: {{ script_status.stat.exists }}"
+
+    - name: Kontrolli, kas crontab töö on olemas
+      command: crontab -l
+      register: crontab_output
+
+    - name: Otsi crontabist varundusreaga
+      debug:
+        msg: >-
+          {% if 'backup_kasutajatugi.sh' in crontab_output.stdout %}
+          ✅ Crontab töö on olemas
+          {% else %}
+          ❌ Crontab töö puudub!
+          {% endif %}
+
+    - name: Kontrolli, kas viimase 6 tunni jooksul on loodud varukoopia
+      find:
+        paths: /var/backups
+        patterns: "kasutajatugi_backup_*.tar.gz"
+        age: 6h
+        recurse: no
+      register: backup_files
+
+    - name: Kuvame, kas värske varukoopia eksisteerib
+      debug:
+        msg: >-
+          {% if backup_files.matched > 0 %}
+          ✅ Varukoopia(d) viimase 6 tunni jooksul leitud: {{ backup_files.files | map(attribute='path') | list }}
+          {% else %}
+          ⚠️ Ühtegi värsket varukoopiat ei leitud viimase 6 tunni jooksul!
+          {% endif %}
+
+    - name: Kontrolli, kas logifail eksisteerib
+      stat:
+        path: /var/log/backup_kasutajatugi.log
+      register: logfile_status
+
+    - name: Kuvame logifaili olemasolu
+      debug:
+        msg: "Logifail olemas: {{ logfile_status.stat.exists }}"
+
+    - name: Kuvame viimase logirea, kui logifail eksisteerib
+      command: tail -n 1 /var/log/backup_kasutajatugi.log
+      register: last_log
+      when: logfile_status.stat.exists
+      ignore_errors: yes
+
+    - name: Kuvame logirea sisu
+      debug:
+        var: last_log.stdout
+      when: logfile_status.stat.exists
