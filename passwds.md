@@ -35,7 +35,7 @@ See dokument sisaldab **kõiki kasutatud kasutajanimesid ja paroole** projekti "
 
 ---
 
-## ℹ️ Märkused
+## ℹ️ Märkus
 - Kõik paroolid on test- ja õppekeskkonna jaoks.  
-- GitHubi üles laadides **soovitame see fail `.gitignore` kaudu välistada** või asendada tundlik info mallidega.
+
 
