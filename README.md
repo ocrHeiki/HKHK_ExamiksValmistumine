@@ -36,7 +36,7 @@ See projekt automatiseerib ettevõtte sisekasutuseks mõeldud **Kasutajatoe veeb
 
 ## 📦 Failistruktuur
 
-\`\`\`
+```
 Ansible_projects/
 ├── ansible.cfg
 ├── inventory/
@@ -56,20 +56,20 @@ Ansible_projects/
     ├── dbserver/
     ├── phpmyadmin/
     └── backup/
-\`\`\`
+```
 
 ---
 
 ## 🚀 Kasutamine
 
 1. Lisa IP-d `hosts` faili (nt `/etc/hosts`):
-\`\`\`
+```
 10.0.24.51 kasutajatugi.oige.local
-\`\`\`
+```
 
 2. Käivita vajalikud playbookid:
 
-\`\`\`bash
+```bash
 cd ~/Ansible_projects
 
 # Veebiserver ja rakendus
@@ -83,7 +83,7 @@ ansible-playbook -i inventory/inventory.ini playbooks/phpmyadmin_setup.yml
 
 # Varukoopiad
 ansible-playbook -i inventory/inventory.ini playbooks/backup_setup.yml
-\`\`\`
+```
 
 ---
 
